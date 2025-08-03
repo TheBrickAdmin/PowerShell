@@ -1,4 +1,3 @@
-
 function Set-SecureEnvironmentEncryptedString {
     <#
     .SYNOPSIS
@@ -33,25 +32,24 @@ function Set-SecureEnvironmentEncryptedString {
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [ValidatePattern('^[A-Za-z_][A-Za-z0-9_]*$')] # Disallow characters not valid in registry value names
+        [ValidatePattern('^[A-Za-z_][A-Za-z0-9_]*$')] # Good: Ensures valid registry key names
         [string]$Name,
 
         [Parameter(Mandatory = $false)]
         [switch]$Force
     )
+
     begin {}
 
     process {
         try {
-            # Define the registry path
             $regPath = "HKCU:\Environment"
 
             # Check if the registry key already exists
             try {
                 $existingValue = Get-ItemProperty -Path $regPath -Name $Name -ErrorAction Stop | Select-Object -ExpandProperty $Name
             } catch {
-                # It's OK if the value doesn't exist
-                $existingValue = $null
+                $existingValue = $null # Acceptable: absence of value is not an error
             }
 
             if ($existingValue -and -not $Force.IsPresent) {
@@ -63,26 +61,26 @@ function Set-SecureEnvironmentEncryptedString {
 
             if ($PSCmdlet.ShouldProcess("Setting environment variable '$Name'")) {
 
-                # Convert the plaintext string to a secure string
                 try {
+                    # Good: SecureString conversion with -AsPlainText and -Force
                     $secureString = ConvertTo-SecureString -String $Content -AsPlainText -Force
                 } catch {
-                    return $false
+                    return $false # Consider logging the error for diagnostics
                 }
 
-                # Store the encrypted string in the HKCU registry
                 try {
+                    # Good: ConvertFrom-SecureString stores encrypted string
                     Set-ItemProperty -Path $regPath -Name $Name -Value ($secureString | ConvertFrom-SecureString)
                 } catch {
-                    return $false
+                    return $false # Consider logging or throwing a more descriptive error
                 }
 
                 return $true
             } else {
-                return $false
+                return $false # Could log that ShouldProcess returned false
             }
         } catch {
-            return $false
+            return $false # Silent failure; consider Write-Error or Write-Verbose
         }
     }
 
