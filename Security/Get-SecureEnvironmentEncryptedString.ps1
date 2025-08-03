@@ -23,7 +23,7 @@ function Get-SecureEnvironmentEncryptedString {
     param (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [ValidatePattern('^[A-Za-z_][A-Za-z0-9_]*$')] # Disallow characters not valid in registry value names
+        [ValidatePattern('^[A-Za-z_][A-Za-z0-9_]*$')] # Good: Ensures valid registry key names
         [string]$Name
     )
 
@@ -31,41 +31,41 @@ function Get-SecureEnvironmentEncryptedString {
 
     process {
         try {
-            # Retrieve the encrypted string from the HKCU registry
             $regPath = "HKCU:\Environment"
+
             try {
+                # Good: Using -ErrorAction Stop to catch missing registry values
                 $encryptedString = Get-ItemProperty -Path $regPath -Name $Name -ErrorAction Stop | Select-Object -ExpandProperty $Name
             } catch {
-                return $null
+                return $null # Consider logging or throwing a more descriptive error
             }
 
-            # Convert the encrypted string back to a secure string
             try {
                 $secureString = $encryptedString | ConvertTo-SecureString -ErrorAction Stop
             } catch {
-                return $null
+                return $null # Same here: silent failure may hinder debugging
             }
 
-            # Convert the secure string to plaintext
             try {
                 $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureString)
                 $plaintext = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
             } catch {
                 return $null
             } finally {
-                # Always clear sensitive data from memory as soon as possible
+                # Good: Zeroing out memory to reduce risk of sensitive data lingering
                 if ($bstr) {
                     [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
                 }
+                # Optional: SecureString doesn't implement IDisposable, so this check is unnecessary
                 if ($secureString -and ($secureString -is [System.IDisposable])) {
                     $secureString.Dispose()
                 }
             }
 
-            # Return the plaintext string
             return $plaintext
         } catch {
-            return $null
+            # Bad: Returning null is a bad practice in pretty much any language.
+            return $null # Consider using Write-Error or Write-Verbose for better diagnostics.
         }
     }
 
