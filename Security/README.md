@@ -75,7 +75,7 @@ If you are running a process under a Group Managed Service Account (gMSA) and ne
 
 ### Steps:
 
-1. **Create or Edit a Scheduled Task **
+1. **Create or Edit a Scheduled Task**
     - Open **Task Scheduler** (`taskschd.msc`).
     - Create a new task or edit an existing one.
 
@@ -83,10 +83,10 @@ If you are running a process under a Group Managed Service Account (gMSA) and ne
     - Temporarily put the secret in a file, e.g. "C:\Temp\Mysecret.txt"
 
 3. **Set the Environment Variable Using PowerShell and Invoke-Command**
-    - Create an action invoking pwsh.exe or powershell.exe.
+    - Create an action invoking `pwsh.exe` or `powershell.exe`.
     - Pass the following argument:
     ```powershell
-    -Command &{ Set-SSCSecureEnvironmentHash -Name "MyEncryptedApplicationPassword" -Content $(Get-Content -Path "C:\Temp\Mysecret.txt") -Force }
+    -Command &{ Set-SecureEnvironmentEncryptedString -Name "MyEncryptedApplicationPassword" -Content $(Get-Content -Path "C:\Temp\Mysecret.txt") -Force }
     ```
 
 4. **Schedule the task to run as the gMSA**
