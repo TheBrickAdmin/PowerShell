@@ -33,12 +33,13 @@ function Set-SecureEnvironmentEncryptedString {
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [ValidatePattern('^[A-Za-z_][A-Za-z0-9_]*$')] # Disallow characters not valid in registry value names
+        [ValidatePattern('^[A-Za-z_][A-Za-z0-9_]*$')] # Ensures valid registry key names
         [string]$Name,
 
         [Parameter(Mandatory = $false)]
         [switch]$Force
     )
+    
     begin {}
 
     process {
