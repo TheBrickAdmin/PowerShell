@@ -27,6 +27,8 @@ function Get-SecureEnvironmentEncryptedString {
         [string]$Name
     )
 
+    begin {}
+
     process {
         try {
             # Retrieve the encrypted string from the HKCU registry
@@ -66,4 +68,6 @@ function Get-SecureEnvironmentEncryptedString {
             return $null
         }
     }
+
+    end {}
 }

@@ -39,6 +39,7 @@ function Set-SecureEnvironmentEncryptedString {
         [Parameter(Mandatory = $false)]
         [switch]$Force
     )
+    begin {}
 
     process {
         try {
@@ -53,7 +54,7 @@ function Set-SecureEnvironmentEncryptedString {
                 $existingValue = $null
             }
 
-            if ($existingValue -and -not $Force) {
+            if ($existingValue -and -not $Force.IsPresent) {
                 $message = "The environment variable '$Name' already exists. Do you want to overwrite it?"
                 if (-not $PSCmdlet.ShouldContinue($message, "Confirm")) {
                     return $false
@@ -84,4 +85,6 @@ function Set-SecureEnvironmentEncryptedString {
             return $false
         }
     }
+
+    end {}
 }
