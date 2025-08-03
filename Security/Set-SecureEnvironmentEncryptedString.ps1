@@ -58,6 +58,7 @@ function Set-SecureEnvironmentEncryptedString {
             if ($existingValue -and -not $Force.IsPresent) {
                 $message = "The environment variable '$Name' already exists. Do you want to overwrite it?"
                 if (-not $PSCmdlet.ShouldContinue($message, "Confirm")) {
+                    Write-Warning "Operation cancelled: The environment variable '$Name' already exists and was not overwritten."
                     return $false
                 }
             }
@@ -68,6 +69,7 @@ function Set-SecureEnvironmentEncryptedString {
                 try {
                     $secureString = ConvertTo-SecureString -String $Content -AsPlainText -Force
                 } catch {
+                    Write-Error "Failed to convert content to SecureString."
                     return $false
                 }
 
@@ -75,14 +77,17 @@ function Set-SecureEnvironmentEncryptedString {
                 try {
                     Set-ItemProperty -Path $regPath -Name $Name -Value ($secureString | ConvertFrom-SecureString)
                 } catch {
+                    Write-Error "Failed to set the registry value for '$Name'."
                     return $false
                 }
 
                 return $true
             } else {
+                Write-Warning "ShouldProcess declined: The environment variable '$Name' was not set."
                 return $false
             }
         } catch {
+            Write-Error "Unexpected error occurred in Set-SecureEnvironmentEncryptedString: $_"
             return $false
         }
     }

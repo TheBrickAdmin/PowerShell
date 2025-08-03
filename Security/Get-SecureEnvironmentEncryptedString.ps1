@@ -36,14 +36,14 @@ function Get-SecureEnvironmentEncryptedString {
             try {
                 $encryptedString = Get-ItemProperty -Path $regPath -Name $Name -ErrorAction Stop | Select-Object -ExpandProperty $Name
             } catch {
-                return $null
+                Write-Warning "The environment variable '$Name' does not exist or could not be retrieved."
             }
 
             # Convert the encrypted string back to a secure string
             try {
                 $secureString = $encryptedString | ConvertTo-SecureString -ErrorAction Stop
             } catch {
-                return $null
+                Write-Error "Failed to convert the encrypted string to SecureString for '$Name'."
             }
 
             # Convert the secure string to plaintext
@@ -51,7 +51,7 @@ function Get-SecureEnvironmentEncryptedString {
                 $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureString)
                 $plaintext = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
             } catch {
-                return $null
+                Write-Error "Failed to convert SecureString to plaintext for '$Name'."
             } finally {
                 # Always clear sensitive data from memory as soon as possible
                 if ($bstr) {
@@ -63,7 +63,7 @@ function Get-SecureEnvironmentEncryptedString {
             # Return the plaintext string
             return $plaintext
         } catch {
-            return $null
+            Write-Error "Unexpected error occurred in Get-SecureEnvironmentEncryptedString: $_"
         }
     }
 
